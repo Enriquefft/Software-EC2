@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/csv"
 	"log"
 	"math"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -42,8 +44,78 @@ func buildUrl(args ...string) string {
 	return urlBuilder.String()
 }
 
+// "city","city_ascii","lat","lng","country","iso2","iso3","admin_name","capital","population","id"
+
+type CityInfo struct {
+	Lat        string `json:"lat"`
+	Lng        string `json:"lng"`
+	Country    string `json:"country"`
+	Iso2       string `json:"iso2"`
+	Iso3       string `json:"iso3"`
+	Admin_name string `json:"admin_name"`
+	Capital    string `json:"capital"`
+	Population string `json:"population"`
+	Id         string `json:"id"`
+}
+
 func (s *CSVService) Distance(city1 string, city2 string) (int, error) {
-	return 1, nil
+	log.Println("city1", city1)
+	log.Println(cities[city1])
+	log.Println("city2", city2)
+
+	log.Println(cities[city2])
+
+	return computeDistance(cities[city1].Lat, cities[city1].Lng, cities[city2].Lat, cities[city2].Lng), nil
+}
+
+// Global variable, map of cities info by city name
+var cities map[string]CityInfo
+
+func readCsv(path string) error {
+	// Open the file
+	csvfile, err := os.Open(path)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer csvfile.Close()
+
+	// Parse the file
+	csv_reader := csv.NewReader(csvfile)
+
+	data, err := csv_reader.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = ParseCsv(data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
+}
+
+func ParseCsv(data [][]string) error {
+	cities = make(map[string]CityInfo)
+
+	for _, row := range data {
+
+		city := CityInfo{
+			Lat:        row[2],
+			Lng:        row[3],
+			Country:    row[4],
+			Iso2:       row[5],
+			Iso3:       row[6],
+			Admin_name: row[7],
+			Capital:    row[8],
+			Population: row[9],
+			Id:         row[10],
+		}
+		cities[row[1]] = city
+	}
+
+	return nil
 }
 
 type APIResponse struct {
@@ -177,6 +249,10 @@ func ginService(gin_ctx *gin.Context) {
 }
 
 func main() {
+	readCsv("worldcities.csv")
+
+	log.Println("cities: ", len(cities))
+
 	router := gin.Default()
 
 	router.POST("/distance", ginService)
