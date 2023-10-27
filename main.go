@@ -59,11 +59,13 @@ type CityInfo struct {
 }
 
 func (s *CSVService) Distance(city1 string, city2 string) (int, error) {
-	log.Println("city1", city1)
-	log.Println(cities[city1])
-	log.Println("city2", city2)
+	log.Println("CSVService.Distance")
+	log.Println("city1: ", city1)
+	log.Println("city2: ", city2)
 
-	log.Println(cities[city2])
+	log.Println("cities: ", len(cities))
+	log.Println("cities[city1]: ", cities[city1])
+	log.Println("cities[city2]: ", cities[city2])
 
 	return computeDistance(cities[city1].Lat, cities[city1].Lng, cities[city2].Lat, cities[city2].Lng), nil
 }
@@ -129,6 +131,10 @@ type Place struct {
 
 func (s *APIService) Distance(city1 string, city2 string) (int, error) {
 	// https://nominatim.openstreetmap.org/search?q=lima,peru&format=json
+
+	log.Println("APIService.Distance")
+	log.Println("city1: ", city1)
+	log.Println("city2: ", city2)
 
 	url1 := buildUrl("https://nominatim.openstreetmap.org/search?q=", city1, "&format=json")
 	url2 := buildUrl("https://nominatim.openstreetmap.org/search?q=", city2, "&format=json")
